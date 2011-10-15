@@ -2,5 +2,3 @@
 *.pyc
 *.pyo
 dist/
-test_project/public/
-test_project/sqlite.db
