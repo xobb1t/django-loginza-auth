@@ -1,43 +1,53 @@
 # -*- coding:utf-8 -*-
-from urllib2 import urlopen
+import urllib
 
-from django import http
-from django.utils import simplejson as json
-from django.contrib import auth
+from django.contrib import auth, messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from loginza import models, signals
-from loginza.authentication import LoginzaError
-from loginza.templatetags.loginza_widget import _return_path
+from .api import LoginzaError, loginza_api
+from .models import Identity
+from .signals import post_associate
+from .settings import CONFIG
+
 
 @require_POST
 @csrf_exempt
-def return_callback(request):
+def loginza_callback(request):
     token = request.POST.get('token', None)
     if token is None:
         return http.HttpResponseBadRequest()
+    next = request.GET.get('next')
+    next = urllib.unquote(next) or '/'
+    response = redirect(next)
+    try:
+        data = loginza_api.get_auth_data(token)
+    except LoginzaError:
+        messages.error(
+            request,
+            _(u'There was an error while processing loginza authentication')
+        )
+        return response
 
-    f = urlopen('http://loginza.ru/api/authinfo?token=%s' % token)
-    result = f.read()
-    f.close()
+    identity, provider = data['identity'], data['provider']
+    user = auth.authenticate(identity=identity, provider=provider)
+    if user is None:
+        identity = Identity.objects.from_loginza_data(data)
+        if request.user.is_authenticated():
+            identity.associate(request.user)
+            return response
+        else:
+            username = data.get('nickname') or CONFIG['DEFAULT_USERNAME']
+            email = data.get('email', '')
+            user = identity.create_user(username, email)
+            user.backend = 'loginza.authentication.LoginzaBackend'
 
-    data = json.loads(result)
-
-    if 'error_type' in data:
-        signals.error.send(request, error=LoginzaError(data))
-        return redirect(_return_path(request))
-
-    identity = models.Identity.objects.from_loginza_data(data)
-    user_map = models.UserMap.objects.for_identity(identity, request)
-    response = redirect(_return_path(request))
-    if request.user.is_anonymous():
-        user = auth.authenticate(user_map=user_map)
-        results = signals.authenticated.send(request, user=user, identity=identity)
-        for callback, result in results:
-            if isinstance(result, http.HttpResponse):
-                response = result
-                break
-
+    if not user.is_active:
+        messages.error(request, _(u'Your account has been disabled'))
+    else:
+        auth.login(request, user)
+        messages.success(request, _(u'Successfull authentication'))
     return response

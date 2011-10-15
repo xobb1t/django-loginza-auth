@@ -1,24 +1,25 @@
-# -*- coding:utf-8 -*-
 from django.contrib.auth.models import User
 
+from .models import Identity
+
+
 class LoginzaBackend(object):
+
     supports_object_permissions = False
     supports_anonymous_user = False
 
-    def authenticate(self, user_map=None):
-        return user_map.user
+    def authenticate(self, identity=None, provider=None):
+        try:
+            identity = Identity.objects.get(
+                identity = identity,
+                provider = provider
+            )
+        except Identity.DoesNotExist:
+            return None
+        return identity.user
 
     def get_user(self, user_id):
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
-
-
-class LoginzaError(object):
-    type = None
-    message = None
-
-    def __init__(self, data):
-        self.type = data['error_type']
-        self.message = data['error_message']
