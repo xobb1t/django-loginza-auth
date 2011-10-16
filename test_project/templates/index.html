@@ -1,0 +1,24 @@
+<html>{% load url from future %}
+<head>
+<script src="//loginza.ru/js/widget.js" type="text/javascript"></script>
+</head>
+<body>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<p>{% if user.is_authenticated %}Wellcome back, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a>{% endif %}</p>
+<p><a href="https://loginza.ru/api/widget?token_url=http://{{ site.domain }}{% url 'loginza' %}?next={{ path|urlencode }}" class="loginza">
+{% if user.is_authenticated %}Attach another OpenID to your account{% else %}Login with OpenID{% endif %}
+</a></p>
+{% if user.is_authenticated %}<p>
+Your attached identities:
+<ul>{% for identity in user.identity_set.all %}
+<li>{{ identity.identity|urlize }} ({{ identity.provider }})</li>
+{% endfor %}</ul>
+</p>{% endif %}
+</body>
+</html>
