@@ -39,13 +39,14 @@ class Identity(models.Model):
 
     def create_user(self, username, email, password=None):
         existing_users = 0
+        new_username = None
         while True:
             existing_users += 1
-            try:
-                User.objects.get(username=username)
-            except User.DoesNotExist:
+            qs = User.objects.all()
+            qs = qs.filter(username=new_username or username)
+            if not qs.exists():
                 break
-            username = '%s_%d' % (username, existing_users)
-        user = User.objects.create_user(username, email, password)
+            new_username = '%s_%d' % (username, existing_users)
+        user = User.objects.create_user(new_username or username, email, password)
         self.associate(user)
         return user
