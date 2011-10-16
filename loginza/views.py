@@ -34,6 +34,12 @@ def loginza_callback(request):
 
     identity, provider = data['identity'], data['provider']
     user = auth.authenticate(identity=identity, provider=provider)
+    if request.user.is_authenticated() and user and request.user != user:
+        messages.error(
+            request,
+            _(u'This OpenID already associated to another account'),
+        )
+        return response
     if user is None:
         identity = Identity.objects.from_loginza_data(data)
         if request.user.is_authenticated():
