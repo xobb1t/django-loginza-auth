@@ -8,7 +8,7 @@ def read(filename):
 
 setup(
     name = 'django-loginza-auth',
-    version = '0.1.1',
+    version = '0.1.2',
     license = 'ISC',
     description = 'Loginza.ru API client',
     long_description = read('README.rst'),
