@@ -1,8 +1,7 @@
-# Django settings for test_project project.
 import os
 
+
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT = os.path.normpath(os.path.abspath(PROJECT_ROOT))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -15,12 +14,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROJECT_ROOT, 'sqlite.db'),                      # Or path to database file if using sqlite3.
-#        'USER': '',                      # Not used with sqlite3.
-#        'PASSWORD': '',                  # Not used with sqlite3.
-#        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-#        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(PROJECT_ROOT, 'sqlite.db'),
     }
 }
 
@@ -36,6 +31,11 @@ TIME_ZONE = 'Europe/Moscow'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'ru'
+
+_ = lambda x: x
+LANGUAGES = (
+    ('ru', _('Russian')),
+)
 
 SITE_ID = 1
 
@@ -87,12 +87,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'nk(2htuqhim#)=t(8rs_^*e8e@nnacmjr+_v3xnxc@t!f(do5#'
-
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'loginza.authentication.LoginzaBackend',
-)
+SECRET_KEY = 'nd9Sdx@3soP1XdpNdAS$23@$!@sda1tyx$#_@y_@hU7y-@ny$@xPn'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -101,13 +96,21 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'loginza.authentication.LoginzaBackend',
+)
+
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.auth',
-#    'django.core.context_processors.debug',
-    'django.core.context_processors.request',
-#    'django.core.context_processors.i18n',
-#    'django.core.context_processors.media',
-#    'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.contrib.messages.context_processors.messages',
+    'core.context_processors.site',
+    'core.context_processors.path',
+    'loginza.context_processors.widget_id',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -121,9 +124,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'test_project.urls'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
     os.path.join(PROJECT_ROOT, 'templates'),
 )
 
@@ -131,13 +131,11 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
 
+    'core',
     'loginza',
-    'users',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -162,7 +160,3 @@ LOGGING = {
         },
     }
 }
-
-# can't use reverse url resolver here (raises ImportError),
-# so we should carefully control paths
-LOGINZA_AMNESIA_PATHS = ('/users/complete_registration/',)

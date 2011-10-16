@@ -1,4 +1,2 @@
 include setup.py
-recursive-include loginza/conf *
 recursive-include loginza/locale *
-recursive-include loginza/templatetags *
